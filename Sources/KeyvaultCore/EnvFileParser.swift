@@ -1,6 +1,16 @@
 import Foundation
 
 public enum EnvFileParser {
+    public static func parse(
+        fileAt path: String,
+        standardInput: FileHandle = .standardInput
+    ) throws -> [String: String] {
+        let data = path == "-"
+            ? standardInput.readDataToEndOfFile()
+            : try Data(contentsOf: URL(fileURLWithPath: path))
+        return try parse(data)
+    }
+
     public static func parse(_ data: Data) throws -> [String: String] {
         guard let text = String(data: data, encoding: .utf8) else {
             throw KeyvaultError.invalidUTF8("Env file")

@@ -31,13 +31,14 @@ kv set <vault>/<name>
 kv list [--json]
 kv rm <vault>/<name>
 kv run [--env-file file]... -- command [args...]
-kv import-env <file> --vault <vault> [--overwrite] [--dry-run]
+kv import-env <file|-> --vault <vault> [--overwrite] [--dry-run]
 ```
 
 - `get` writes the exact stored bytes to stdout, with no added newline. `set` reads all bytes from stdin, or uses a hidden prompt when stdin is a terminal. The secret is never accepted as a command argument.
 - `list` shows names and creation/modification dates only. `--json` emits the same metadata as JSON.
 - `run` parses each env file without sourcing or evaluating it. It supports `KEY=VALUE`, optional `export`, blank lines, comments, single and double quotes, multiline quoted values, empty values, and last-duplicate-wins. It does not expand shell variables or command substitutions. Env-file values override inherited variables, and later files override earlier files. A whole value of the form `kv://<vault>/<name>` is resolved. Embedded `kv://` references fail clearly. All references are resolved before the child starts; a missing, locked, or denied secret prevents launch. The child inherits the current working directory and receives the given command and arguments. Its output is not masked.
 - `import-env` shows each target name and whether it is new or collides. `--dry-run` shows the preview without writing. Without `--overwrite`, colliding items are skipped; `op://` values are refused. Other valid values are still imported, and the command reports partial completion with a nonzero exit status when any item is skipped or fails. The source file is never changed.
+- For `import-env`, use `-` as the source path to read env text from standard input.
 
 Addresses are flat: `<vault>/<name>`. Each component starts with a letter or number and contains only letters, numbers, `.`, `_`, or `-`.
 

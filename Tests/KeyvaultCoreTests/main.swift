@@ -6,6 +6,7 @@ import Security
 struct KeyvaultCoreTests {
     static func main() throws {
         try testEnvFileValuesAndPrecedence()
+        try testEnvFileParserReadsStandardInput()
         try testMultilineValuesRemainLiteral()
         try testMalformedEnvFilesFail()
         try testWholeValueReferencesResolveExactly()
@@ -16,7 +17,7 @@ struct KeyvaultCoreTests {
         try testSecretSaveActionWritesValidatedAddressAndBytes()
         try testSecretSaveActionReportsWriteFailure()
         try testSecretSaveActionRejectsInvalidAddress()
-        print("11 KeyvaultCore unit tests passed.")
+        print("12 KeyvaultCore unit tests passed.")
     }
 }
 
@@ -34,6 +35,15 @@ private func testEnvFileValuesAndPrecedence() throws {
     try expect(values["SINGLE"] == " a # b ", "single-quoted content is literal")
     try expect(values["DOUBLE"] == "line\nnext \"quoted\"", "double-quoted escapes are decoded")
     try expect(values["EMPTY"] == "", "empty values are retained")
+}
+
+private func testEnvFileParserReadsStandardInput() throws {
+    let pipe = Pipe()
+    pipe.fileHandleForWriting.write(Data("TOKEN=stdin-value\n".utf8))
+    pipe.fileHandleForWriting.closeFile()
+
+    let values = try EnvFileParser.parse(fileAt: "-", standardInput: pipe.fileHandleForReading)
+    try expect(values["TOKEN"] == "stdin-value", "dash source reads and parses standard input")
 }
 
 private func testMultilineValuesRemainLiteral() throws {

@@ -151,7 +151,7 @@ private func importEnv(arguments: [String], vault: any VaultStorage) throws {
     }
     guard let targetVault, VaultAddress.isValidComponent(targetVault) else { throw usageError() }
 
-    let parsed = try EnvFileParser.parse(Data(contentsOf: URL(fileURLWithPath: filePath)))
+    let parsed = try EnvFileParser.parse(fileAt: filePath)
     var plans: [ImportPlan] = []
     for (name, value) in parsed.sorted(by: { $0.key < $1.key }) {
         let address = try VaultAddress(vault: targetVault, name: name)
@@ -237,6 +237,6 @@ private func printUsage() {
       kv list [--json]
       kv rm <vault>/<name>
       kv run [--env-file file]... -- command [args...]
-      kv import-env <file> --vault <vault> [--overwrite] [--dry-run]
+      kv import-env <file|-> --vault <vault> [--overwrite] [--dry-run]
     """)
 }
