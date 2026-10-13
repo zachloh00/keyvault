@@ -6,7 +6,7 @@ Keyvault is a small macOS app and `kv` command for storing local secrets in the 
 
 The v1 vault is available to automation running as the logged-in macOS user. The `kv` CLI reads secrets without prompting, including unattended worker processes. The app uses Touch ID with the account password as fallback when its window opens or unlocks and before a secret is revealed or copied. This authentication protects the app window only. Keychain items do not require user presence, and any process running as this macOS user can invoke `kv` and read them. Vault names organize secrets; they do not isolate workers.
 
-Keychain items use the `com.firstmate.keyvault` service in the login Keychain with synchronization disabled. Access lists trust the installed app and CLI. Keep the local signing identity and installed paths stable so rebuilds retain Keychain access. Secrets and child process output are not masked; `kv run` passes resolved values to the child, which may print them.
+Keychain items use the `com.firstmate.keyvault` service in the login Keychain with synchronization disabled. Access lists trust the installed app and CLI paths. Because the self-signed local identity has no Apple Team ID, each item's partition list pins exact build fingerprints (CDHashes); a rebuild changes those hashes and can trigger a Keychain prompt even when the installed paths stay the same. Secrets and child process output are not masked; `kv run` passes resolved values to the child, which may print them.
 
 ## Build and install
 
@@ -18,6 +18,8 @@ scripts/build-install.sh
 ```
 
 The first command creates the self-signed `Keyvault Local Signing` identity in the login Keychain. The second builds `Keyvault.app` at `~/Applications/Keyvault.app` and links `~/.local/bin/kv` to its bundled CLI. Add `~/.local/bin` to `PATH` if needed. The signing private key remains in the login Keychain; temporary key material is removed by the identity script.
+
+After a successful install, `scripts/build-install.sh` runs `scripts/reauthorize.sh` when stdin is a terminal. It shows the current app and CLI CDHashes and the number of matching items, then asks macOS to prompt once for the login Keychain password and update every matching item. The script keeps non-CDHash partition entries only when every matching item already has them. Preview the changes with `scripts/reauthorize.sh --dry-run`. When installation runs without terminal input, run `scripts/reauthorize.sh` from this repository in a terminal.
 
 ## App
 

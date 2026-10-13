@@ -60,6 +60,10 @@ codesign --force --sign "$identity_name" --identifier "$application_id" \
 codesign --verify --strict "$staged_app/Contents/MacOS/kv"
 codesign --verify --deep --strict "$staged_app"
 
+if /usr/bin/pgrep -x Keyvault >/dev/null 2>&1; then
+  echo "Warning: Keyvault.app is running; quit it before installing." >&2
+fi
+
 previous_app="$staging_root/previous.app"
 if [[ -e "$application_path" ]]; then mv "$application_path" "$previous_app"; fi
 if ! mv "$staged_app" "$application_path"; then
@@ -68,3 +72,8 @@ if ! mv "$staged_app" "$application_path"; then
 fi
 ln -sfn "$cli_path" "$cli_link"
 echo "Installed $application_path and linked $cli_link"
+if [[ -t 0 ]]; then
+  scripts/reauthorize.sh
+else
+  echo "Run scripts/reauthorize.sh from this repository in a terminal to reauthorize Keyvault items."
+fi
